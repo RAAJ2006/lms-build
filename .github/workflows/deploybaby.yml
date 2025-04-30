@@ -3,7 +3,7 @@ name: Deploy Next.js in Docker on VPS
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
