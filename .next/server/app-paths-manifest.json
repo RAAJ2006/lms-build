@@ -1,0 +1,12 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/api/stripe-checkout/webhook/route": "app/api/stripe-checkout/webhook/route.js",
+  "/(dashboard)/dashboard/courses/[courseId]/lessons/[lessonId]/page": "app/(dashboard)/dashboard/courses/[courseId]/lessons/[lessonId]/page.js",
+  "/(dashboard)/dashboard/courses/[courseId]/page": "app/(dashboard)/dashboard/courses/[courseId]/page.js",
+  "/(admin)/studio/[[...tool]]/page": "app/(admin)/studio/[[...tool]]/page.js",
+  "/(user)/my-courses/page": "app/(user)/my-courses/page.js",
+  "/(user)/search/[term]/page": "app/(user)/search/[term]/page.js",
+  "/(user)/courses/[slug]/page": "app/(user)/courses/[slug]/page.js",
+  "/(user)/page": "app/(user)/page.js"
+}
