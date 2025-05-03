@@ -27,8 +27,9 @@ WORKDIR /app
 COPY --from=build /app /app
 
 # Set memory allocation and disable telemetry
-ENV NODE_OPTIONS="--max-old-space-size=6144"
+ENV NODE_OPTIONS="--max-old-space-size=12288"
 ENV NEXT_TELEMETRY_DISABLED=1
+
 
 # Expose port 3000
 EXPOSE 3000
