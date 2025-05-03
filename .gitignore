@@ -48,3 +48,4 @@ Dockerfile.local
 # Swap/System files
 *.swp
 Thumbs.db
+.next/cache/
