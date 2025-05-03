@@ -13,35 +13,44 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup SSH
+    - name: Setup SSH Agent
       uses: webfactory/ssh-agent@v0.7.0
       with:
         ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
 
-    - name: Copy project to VPS
+    - name: Sync Project to VPS
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "mkdir -p ~/next-app"
         rsync -avz --exclude node_modules --exclude .git ./ ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:~/next-app
 
-    - name: Create .env file on VPS
+    - name: Create .env on VPS
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
-          echo "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" > ~/next-app/.env
-          echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" >> ~/next-app/.env
-          echo "NEXT_PUBLIC_SANITY_PROJECT_ID=${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}" >> ~/next-app/.env
-          echo "NEXT_PUBLIC_SANITY_DATASET=${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}" >> ~/next-app/.env
-          echo "SANITY_API_TOKEN=${{ secrets.SANITY_API_TOKEN }}" >> ~/next-app/.env
-          echo "NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}" >> ~/next-app/.env
-          echo "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}" >> ~/next-app/.env
-          echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> ~/next-app/.env
-          echo "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}" >> ~/next-app/.env
+          cat > ~/next-app/.env <<EOL
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
+NEXT_PUBLIC_SANITY_PROJECT_ID=${{ secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
+NEXT_PUBLIC_SANITY_DATASET=${{ secrets.NEXT_PUBLIC_SANITY_DATASET }}
+SANITY_API_TOKEN=${{ secrets.SANITY_API_TOKEN }}
+NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+EOL
         EOF
 
-    - name: Build & Run Docker container on VPS
+    - name: Build and Run Docker Container on VPS
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} << 'EOF'
           cd ~/next-app
-          docker stop next-app || true && docker rm next-app || true
+
+          # Stop and remove old container if exists
+          docker stop next-app || true
+          docker rm next-app || true
+
+          # Build new image (env is present inside the context)
           docker build -t next-app .
-          docker run -d -p 3000:3000 --name next-app next-app
+
+          # Run the container
+          docker run -d -p 3000:3000 --name next-app --restart always next-app
         EOF

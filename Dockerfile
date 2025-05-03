@@ -7,18 +7,21 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Environment optimizations
+# Clean npm cache
+RUN npm cache clean --force
+
+# Set memory allocation and disable telemetry
 ENV NODE_OPTIONS=--max-old-space-size=6144
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Copy the rest of the code
+# Copy the rest of the app
 COPY . .
 
-# Build the project
-RUN npm run build
+# Build the project with verbose output for debugging
+RUN npm run build --verbose
 
-# Expose port
+# Expose port 3000
 EXPOSE 3000
 
-# Start app
+# Start the application
 CMD ["npm", "start"]
