@@ -4,16 +4,15 @@ import Stripe from "stripe";
 import { getStudentByClerkId } from "@/sanity/lib/student/getStudentByClerkId";
 import { createEnrollment } from "@/sanity/lib/student/createEnrollment";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2023-10-16" as Stripe.LatestApiVersion,
-});
+// ✅ Stripe initialization with the latest stable API version
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: Request) {
     try {
         const body = await req.text();
-        const headersList = await headers();
+        const headersList = await headers(); // ✅ Await this
         const signature = headersList.get("stripe-signature");
 
         if (!signature) {
@@ -28,17 +27,15 @@ export async function POST(req: Request) {
             const errorMessage =
                 error instanceof Error ? error.message : "Unknown error";
             console.error(`Webhook signature verification failed: ${errorMessage}`);
-
             return new NextResponse(`Webhook Error: ${errorMessage}`, {
                 status: 400,
             });
         }
 
-        // Handle the checkout.session.completed event
+        // ✅ Handle the checkout.session.completed event
         if (event.type === "checkout.session.completed") {
             const session = event.data.object as Stripe.Checkout.Session;
 
-            // Get the courseId and userId from the metadata
             const courseId = session.metadata?.courseId;
             const userId = session.metadata?.userId;
 
@@ -52,17 +49,17 @@ export async function POST(req: Request) {
                 return new NextResponse("Student not found", { status: 400 });
             }
 
-            // Create an enrollment record in Sanity
             await createEnrollment({
                 studentId: student.data._id,
                 courseId,
                 paymentId: session.id,
-                amount: session.amount_total! / 100, // Convert from cents to dollars
+                amount: session.amount_total! / 100, // Convert cents to dollars
             });
 
             return new NextResponse(null, { status: 200 });
         }
 
+        // ✅ If not handled, return 200 anyway
         return new NextResponse(null, { status: 200 });
     } catch (error) {
         console.error("Error in webhook handler:", error);
