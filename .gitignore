@@ -49,3 +49,4 @@ Dockerfile.local
 *.swp
 Thumbs.db
 .next/cache/
+.next
