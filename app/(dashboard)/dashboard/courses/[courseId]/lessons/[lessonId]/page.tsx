@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { getLessonById } from "@/sanity/lib/lessons/getLessonById";
@@ -6,31 +8,35 @@ import { LoomEmbed } from "@/components/LoomEmbed";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { LessonCompleteButton } from "@/components/LessonCompleteButton";
 
-interface LessonPageProps {
-    params: {
-        courseId: string;
-        lessonId: string;
-    };
-}
+// interface LessonPageProps {
+//     params: {
+//         courseId: string;
+//         lessonId: string;
+//     };
+// }
 
-export default async function LessonPage({ params }: LessonPageProps) {
-    console.log("Params:", params);
 
+export default async function LessonPage({ params }: any) {
     const user = await currentUser();
+
     if (!user) {
-        return redirect("/sign-in"); // Redirect if user is not logged in
+        return redirect("/sign-in");
     }
 
-    const { courseId, lessonId } = params;
-    console.log("Course ID:", courseId);
-    console.log("Lesson ID:", lessonId);
+    const courseId =
+        typeof params.courseId === "string" ? params.courseId : params.courseId?.[0];
+    const lessonId =
+        typeof params.lessonId === "string" ? params.lessonId : params.lessonId?.[0];
+
+    if (!courseId || !lessonId) {
+        return redirect("/dashboard");
+    }
 
     const lesson = await getLessonById(lessonId);
+
     if (!lesson) {
         return redirect(`/dashboard/courses/${courseId}`);
     }
-
-    console.log("Lesson:", lesson);
 
     return (
         <div className="h-full flex flex-col overflow-hidden">
@@ -46,7 +52,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
                         {/* Video Section */}
                         {lesson.videoUrl && <VideoPlayer url={lesson.videoUrl} />}
 
-                        {/* Loom Embed Video if loomUrl is provided */}
+                        {/* Loom Embed */}
                         {lesson.loomUrl && <LoomEmbed shareUrl={lesson.loomUrl} />}
 
                         {/* Lesson Content */}
