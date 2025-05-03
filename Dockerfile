@@ -1,4 +1,3 @@
-# Use a newer Node version for better compatibility
 FROM node:20-alpine
 
 # Set working directory
@@ -8,17 +7,18 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Set Node options to avoid memory issues during build
-ENV NODE_OPTIONS=--max-old-space-size=4096
+# Environment optimizations
+ENV NODE_OPTIONS=--max-old-space-size=6144
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Copy the rest of the application code
+# Copy the rest of the code
 COPY . .
 
-# Build the Next.js project
+# Build the project
 RUN npm run build
 
-# Expose the port the app runs on
+# Expose port
 EXPOSE 3000
 
-# Start the app
+# Start app
 CMD ["npm", "start"]
